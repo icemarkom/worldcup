@@ -52,6 +52,8 @@ const (
 	stageThirdPlace     = "Play-off for third place"
 	stageFinal          = "Final"
 
+	timeFullTime = "full-time"
+
 	wsjURL  = "https://worldcupjson.net/matches/"
 	flagURL = "https://countryflagsapi.com/svg/"
 
@@ -60,6 +62,8 @@ const (
 
 	flagFIFA     = "FIFA"
 	flagWorldCup = "Qatar"
+
+	paramNoSpoilers = "boring"
 )
 
 // Country is information about a side in a match.
@@ -72,12 +76,13 @@ type Country struct {
 
 // Match is the information about a match.
 type Match struct {
-	ID       int     `json:"id"`
-	Stage    string  `json:"stage_name"`
-	HomeTeam Country `json:"home_team"`
-	AwayTeam Country `json:"away_team"`
-	Time     string  `json:"time"`
-	Updated  string
+	ID         int     `json:"id"`
+	Stage      string  `json:"stage_name"`
+	HomeTeam   Country `json:"home_team"`
+	AwayTeam   Country `json:"away_team"`
+	Time       string  `json:"time"`
+	Updated    string
+	NoSpoilers bool
 }
 
 var (
@@ -200,7 +205,21 @@ func handleMatch(w http.ResponseWriter, r *http.Request, mn int) {
 		return
 	}
 
-	tpl := template.Must(template.ParseFS(htmlFS, matchHTML))
+	r.ParseForm()
+	if _, ok := r.Form[paramNoSpoilers]; ok {
+		match.NoSpoilers = true
+	}
+
+	fmap := template.FuncMap{
+		"noSpoilers": func(m Match) bool {
+			return match.NoSpoilers
+		},
+		"boringMatch": func(m Match) bool {
+			return m.Time == timeFullTime && (m.HomeTeam.Goals+m.AwayTeam.Goals == 0)
+		},
+	}
+
+	tpl := template.Must(template.New(matchHTML).Funcs(fmap).ParseFS(htmlFS, matchHTML))
 
 	if err := tpl.Execute(w, match); err != nil {
 		log.Printf("Error executing template: %v", err)
