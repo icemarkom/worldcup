@@ -64,6 +64,7 @@ const (
 	flagWorldCup = "Qatar"
 
 	paramNoSpoilers = "boring"
+	localTZ         = "America/Los_Angeles"
 )
 
 // Country is information about a side in a match.
@@ -109,7 +110,11 @@ func fetchMatch(m int) (*Match, error) {
 	if err != nil {
 		return nil, err
 	}
-	match.Updated = time.Now().Format("2006-01-02 15:04:05 MST")
+	tz, err := time.LoadLocation(localTZ)
+	if err != nil {
+		return nil, err
+	}
+	match.Updated = time.Now().In(tz).Format("2006-01-02 15:04:05 MST")
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
