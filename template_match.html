@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+   <title>World Cup: {{ .HomeTeam.ID }} vs. {{ .AwayTeam.ID }}</title>
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro" type="text/css">
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" type="text/css">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta http-equiv="refresh" content="30">
+</head>
+
+<style>
+  .content {
+    display: table;
+    width: 100%;
+    height: 100%;
+    font-family: "Source Sans Pro";
+    font-size: xxx-large;
+  }
+
+  .countryrow {
+    display: table-row;
+    text-align: center;
+    height: 40%;
+  }
+  .countrycell {
+    display: table-cell;
+    width: 45%;
+    vertical-align: middle;
+  }
+
+  .scorerow {
+    display: table-row;
+    text-align: center;
+    height: 58%;
+  }
+  .scorecell {
+    display: table-cell;
+    width: 45%;
+    vertical-align: middle;
+    font-size: 400px;
+  }
+
+  .datarow {
+    display: table-row;
+    text-align: center;
+    height: 2%;
+  }
+  .datacell {
+    display: table-cell;
+    vertical-align: middle;
+    font-size: 10px;
+    font-family: "Source Code Pro";
+  }
+
+  .dividercell {
+    display: table-cell;
+    width: 10%;
+    vertical-align: middle;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-family: 'Source Code Pro';
+    font-size: 32px;
+    cursor: default;
+  }
+  h2 {
+    font-family: 'Source Code Pro';
+    font-size: 25px;
+    cursor: default;
+  }
+  img {
+    border-style: groove;
+    border-width: 1px;
+  }
+</style>
+
+<body>
+  <section class="content">
+    <section class="countryrow">
+      <section class="countrycell">
+        <img src="/flags/{{ .HomeTeam.Flag }}.png" alt="{{ .HomeTeam.Name }} flag"/>
+        <br>
+        {{ .HomeTeam.Name }}
+      </section>
+      <section class="dividercell">
+        vs.
+      </section>
+      <section class="countrycell">
+        <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam }}.png flag"/>
+        <br>
+        {{ .AwayTeam.Name }}
+      </section>
+    </section>
+
+    <section class="scorerow">
+      <section class="scorecell">
+        {{ .HomeTeam.Goals }}
+      </section>
+      <section class="dividercell">
+        {{ .Time }}
+      </section>
+      <section class="scorecell">
+        {{ .AwayTeam.Goals }}
+      </section>
+    </section>
+
+    <section class="datarow">
+      <section class="datacell">
+        Last updated: {{ .Updated }}
+      </section>
+      <section class="datacell">
+      </section>
+      <section class="datacell">
+        icemarkom@
+      </section>
+    </section>
+  </section>
+</body>
+
+</html>

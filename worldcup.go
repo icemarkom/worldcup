@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	_ "embed"
 )
 
 /*
@@ -47,22 +45,24 @@ import (
 */
 
 const (
+	stageFirstStage     = "First stage"
 	stageRoundOfSixteen = "Round of 16"
 	stageQuarterFinal   = "Quarter-final"
 	stageSemiFinal      = "Semi-final"
-
-	stageThirdPlace = "Play-off for third place"
-	stageFinal      = "Final"
+	stageThirdPlace     = "Play-off for third place"
+	stageFinal          = "Final"
 
 	wsjURL  = "https://worldcupjson.net/matches/"
 	flagURL = "https://countryflagsapi.com/svg/"
 
 	indexHTML = "template_index.html"
+	matchHTML = "template_match.html"
 
 	flagFIFA     = "FIFA"
 	flagWorldCup = "Qatar"
 )
 
+// Country is information about a side in a match.
 type Country struct {
 	ID    string `json:"country"`
 	Name  string `json:"name"`
@@ -70,7 +70,10 @@ type Country struct {
 	Goals int `json:"goals"`
 }
 
+// Match is the information about a match.
 type Match struct {
+	ID       int     `json:"id"`
+	Stage    string  `json:"stage_name"`
 	HomeTeam Country `json:"home_team"`
 	AwayTeam Country `json:"away_team"`
 	Time     string  `json:"time"`
@@ -78,14 +81,14 @@ type Match struct {
 }
 
 var (
-	//go:embed template_index.html
+	//go:embed *.html
 	htmlFS embed.FS
 
 	//go:embed flags/*.png
 	flagsFS embed.FS
 
-	// God save the King and his many domains. Also FIFA.
-	FlagExceptions = map[string]string{
+	// flagExceptions: God save the King and his many domains. Also FIFA.
+	flagExceptions = map[string]string{
 		"CRO": "HRV",
 		"ENG": "GB-ENG",
 		"NED": "NLD",
@@ -112,7 +115,7 @@ func fetchMatch(m int) (*Match, error) {
 	// Flag hack: FIFA and ISO don't agree on 3-letter codes; or whether they should be 3-letter.
 	for _, t := range []*Country{&match.HomeTeam, &match.AwayTeam} {
 		t.Flag = t.ID
-		if f, ok := FlagExceptions[t.ID]; ok {
+		if f, ok := flagExceptions[t.ID]; ok {
 			t.Flag = f
 		}
 	}
@@ -125,19 +128,71 @@ func fetchMatch(m int) (*Match, error) {
 	return &match, nil
 }
 
-func handleRoot(w http.ResponseWriter, r *http.Request) {
-	// Silently ignore favicons.
-	if r.URL.Path == "/favicon.ico" {
-		return
+func fetchAllMatches() ([]Match, error) {
+	var matches []Match
+
+	resp, err := http.Get(fmt.Sprintf("%s", wsjURL))
+	if err != nil {
+		return nil, err
 	}
-	// The only URL we serve is an integer number between 49 and 64 (Round of 16 onwards).
-	mn, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/"))
-	if err != nil || (mn < 49 || mn > 64) {
-		log.Printf("Bad URL request: %v", err)
-		http.NotFound(w, r)
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &matches); err != nil {
+		return nil, err
+	}
+	return matches, nil
+}
+
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	matches, err := fetchAllMatches()
+	if err != nil {
+		log.Printf("Error fetching matches: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	fmap := template.FuncMap{
+		"title16": func() string {
+			return stageRoundOfSixteen
+		},
+		"titleQF": func() string {
+			return stageQuarterFinal
+		},
+		"titleSF": func() string {
+			return stageSemiFinal
+		},
+		"title3P": func() string {
+			return stageThirdPlace
+		},
+		"titleF": func() string {
+			return stageFinal
+		},
+		"is16": func(m Match) bool {
+			return m.Stage == stageRoundOfSixteen
+		},
+		"isQF": func(m Match) bool {
+			return m.Stage == stageQuarterFinal
+		},
+		"isSF": func(m Match) bool {
+			return m.Stage == stageSemiFinal
+		},
+		"is3P": func(m Match) bool {
+			return m.Stage == stageThirdPlace
+		},
+		"isF": func(m Match) bool {
+			return m.Stage == stageFinal
+		},
+	}
+	tpl := template.Must(template.New(indexHTML).Funcs(fmap).ParseFS(htmlFS, indexHTML))
+
+	if err := tpl.Execute(w, matches); err != nil {
+		log.Printf("Error executing template: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+}
+
+func handleMatch(w http.ResponseWriter, r *http.Request, mn int) {
 	match, err := fetchMatch(mn)
 	if err != nil {
 		log.Printf("Error fetching match %d: %v", mn, err)
@@ -145,7 +200,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tpl := template.Must(template.ParseFS(htmlFS, indexHTML))
+	tpl := template.Must(template.ParseFS(htmlFS, matchHTML))
 
 	if err := tpl.Execute(w, match); err != nil {
 		log.Printf("Error executing template: %v", err)
@@ -153,9 +208,35 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleRequest(w http.ResponseWriter, r *http.Request) {
+	// Root should show us the list of matches.
+	if r.URL.Path == "/" {
+		handleRoot(w, r)
+		return
+	}
+
+	// Silently ignore favicons.
+	if r.URL.Path == "/favicon.ico" {
+		return
+	}
+
+	// The only URL we serve is an integer number between 49 and 64 (Round of 16 onwards).
+	mn, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/"))
+	if err == nil && mn >= 49 && mn <= 64 {
+		handleMatch(w, r, mn)
+		return
+	}
+
+	// Everything else is 404d.
+	log.Printf("Bad URL request: %v", err)
+	http.NotFound(w, r)
+	return
+}
+
+// EntryFunc is the entry function to the app; separated from the main to facilitate Cloud Function deployment.
 func EntryFunc(port string) {
 	// HTTP server
-	http.HandleFunc("/", handleRoot)
+	http.HandleFunc("/", handleRequest)
 	http.Handle("/flags/", http.FileServer(http.FS(flagsFS)))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
