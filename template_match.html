@@ -1,3 +1,39 @@
+{{- define "score" -}}
+      <section class="scorerow">
+        <section class="scorecell">
+          {{ .HomeTeam.Goals }}
+        </section>
+        <section class="dividercell">
+          {{ .Time }}
+        </section>
+        <section class="scorecell">
+          {{ .AwayTeam.Goals }}
+        </section>
+      </section>
+{{- end -}}
+
+{{- define "boringscore" -}}
+      <section class="nospoilersrow">
+        <section class="nospoilerscell">
+          {{ if boringMatch . }}
+          BORING
+          {{ else }}
+          NO
+          {{ end }}
+        </section>
+        <section class="dividercell">
+          {{ .Time }}
+        </section>
+        <section class="nospoilerscell">
+          {{ if boringMatch . }}
+          MATCH
+          {{ else }}
+          SPOILERS
+          {{ end }}
+        </section>
+      </section>
+{{- end -}}
+
 <!DOCTYPE html>
 
 <html>
@@ -40,6 +76,17 @@
     width: 45%;
     vertical-align: middle;
     font-size: 400px;
+  }
+
+  .nospoilersrow {
+    display: table-row;
+    text-align: center;
+    height: 58%;
+  }
+  .nospoilerscell {
+    display: table-cell;
+    width: 45%;
+    vertical-align: middle;
   }
 
   .datarow {
@@ -103,17 +150,11 @@
       </section>
     </section>
 
-    <section class="scorerow">
-      <section class="scorecell">
-        {{ .HomeTeam.Goals }}
-      </section>
-      <section class="dividercell">
-        {{ .Time }}
-      </section>
-      <section class="scorecell">
-        {{ .AwayTeam.Goals }}
-      </section>
-    </section>
+    {{ if noSpoilers . }}
+    {{ template "boringscore" . }}
+    {{ else }}
+    {{ template "score" . }}
+    {{ end }}
 
     <section class="datarow">
       <section class="datacell">
