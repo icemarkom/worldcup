@@ -148,7 +148,7 @@
       <section class="countrycell">
         <img src="/flags/{{ .HomeTeam.Flag }}.png" alt="{{ .HomeTeam.Name }} flag" >
         <br>
-        {{ .HomeTeam.Name }}
+        {{ isTBD .HomeTeam }}
       </section>
       <section class="dividercell">
         vs.
@@ -156,7 +156,7 @@
       <section class="countrycell">
         <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam }}.png flag">
         <br>
-        {{ .AwayTeam.Name }}
+        {{ isTBD .AwayTeam }}
       </section>
     </section>
 

@@ -51,8 +51,8 @@ const (
 	stageSemiFinal      = "Semi-final"
 	stageThirdPlace     = "Play-off for third place"
 	stageFinal          = "Final"
-
-	timeFullTime = "full-time"
+	countryTBD          = "To Be Determined"
+	timeFullTime        = "full-time"
 
 	wsjURL  = "https://worldcupjson.net/matches/"
 	flagURL = "https://countryflagsapi.com/svg/"
@@ -149,6 +149,13 @@ func fetchAllMatches() ([]Match, error) {
 	return matches, nil
 }
 
+func isTBD(c Country) string {
+	if c.Name == countryTBD {
+		return c.ID
+	}
+	return c.Name
+}
+
 func handleRoot(w http.ResponseWriter, r *http.Request) {
 	matches, err := fetchAllMatches()
 	if err != nil {
@@ -191,6 +198,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		"isF": func(m Match) bool {
 			return m.Stage == stageFinal
 		},
+		"isTBD": isTBD,
 	}
 	tpl := template.Must(template.New(indexHTML).Funcs(fmap).ParseFS(htmlFS, indexHTML))
 
@@ -220,6 +228,7 @@ func handleMatch(w http.ResponseWriter, r *http.Request, mn int) {
 		"boringMatch": func(m Match) bool {
 			return m.Time == timeFullTime && (m.HomeTeam.Goals+m.AwayTeam.Goals == 0)
 		},
+		"isTBD": isTBD,
 	}
 
 	tpl := template.Must(template.New(matchHTML).Funcs(fmap).ParseFS(htmlFS, matchHTML))
