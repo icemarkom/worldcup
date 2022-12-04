@@ -1,5 +1,5 @@
 {{- define "match" -}}
-[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>] [<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">no-spoilers</a>] {{ .HomeTeam.Name }} vs. {{ .AwayTeam.Name }}
+[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>][<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">SF</a>] {{ isTBD .HomeTeam }} vs. {{ isTBD .AwayTeam }}
 {{- end -}}
 
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
     cursor: default;
   }
   li {
-    font-size: large;
+    font-size: medium;
     cursor: default;
     font-family: 'Source Code Pro';
   }
