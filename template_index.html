@@ -1,5 +1,5 @@
 {{- define "match" -}}
-[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>] {{ .HomeTeam.Name }} vs. {{ .AwayTeam.Name }}
+[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>] [<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">no-spoilers</a>] {{ .HomeTeam.Name }} vs. {{ .AwayTeam.Name }}
 {{- end -}}
 
 <!DOCTYPE html>

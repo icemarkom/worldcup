@@ -173,6 +173,9 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		"titleF": func() string {
 			return stageFinal
 		},
+		"noSpoilers": func() string {
+			return paramNoSpoilers
+		},
 		"is16": func(m Match) bool {
 			return m.Stage == stageRoundOfSixteen
 		},
