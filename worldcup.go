@@ -45,14 +45,16 @@ import (
 */
 
 const (
-	stageFirstStage     = "First stage"
-	stageRoundOfSixteen = "Round of 16"
-	stageQuarterFinal   = "Quarter-final"
-	stageSemiFinal      = "Semi-final"
-	stageThirdPlace     = "Play-off for third place"
-	stageFinal          = "Final"
-	countryTBD          = "To Be Determined"
-	timeFullTime        = "full-time"
+	stageFirstStage        = "First stage"
+	stageRoundOfSixteen    = "Round of 16"
+	stageQuarterFinal      = "Quarter-final"
+	stageSemiFinal         = "Semi-final"
+	stageThirdPlace        = "Play-off for third place"
+	stageFinal             = "Final"
+	countryTBD             = "To Be Determined"
+	statusFutureUnschedule = "future_unscheduled"
+	statusFutureScheduled  = "future_scheduled"
+	statusCompleted        = "completed"
 
 	wsjURL = "https://worldcupjson.net/matches/"
 	// flagURL = "https://countryflagsapi.com/svg/"
@@ -77,11 +79,13 @@ type Country struct {
 
 // Match is the information about a match.
 type Match struct {
-	ID         int     `json:"id"`
-	Stage      string  `json:"stage_name"`
-	HomeTeam   Country `json:"home_team"`
-	AwayTeam   Country `json:"away_team"`
-	Time       string  `json:"time"`
+	ID         int       `json:"id"`
+	Stage      string    `json:"stage_name"`
+	HomeTeam   Country   `json:"home_team"`
+	AwayTeam   Country   `json:"away_team"`
+	DateTime   time.Time `json:"datetime"`
+	Time       string    `json:"time"`
+	Status     string    `json:"status"`
 	Updated    string
 	NoSpoilers bool
 }
@@ -101,6 +105,8 @@ var (
 		"POR": "PRT",
 		"SUI": "CHE",
 	}
+
+	tzLocal *time.Location
 )
 
 func fetchMatch(m int) (*Match, error) {
@@ -110,11 +116,7 @@ func fetchMatch(m int) (*Match, error) {
 	if err != nil {
 		return nil, err
 	}
-	tz, err := time.LoadLocation(localTZ)
-	if err != nil {
-		return nil, err
-	}
-	match.Updated = time.Now().In(tz).Format("2006-01-02 15:04:05 MST")
+	match.Updated = time.Now().In(tzLocal).Format("2006-01-02 15:04:05 MST")
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -161,6 +163,10 @@ func isTBD(c Country) string {
 	return c.Name
 }
 
+func matchDay(m Match) string {
+	return m.DateTime.In(tzLocal).Format("Mon, Jan 2 at 15:00 MST")
+}
+
 func handleRoot(w http.ResponseWriter, r *http.Request) {
 	matches, err := fetchAllMatches()
 	if err != nil {
@@ -203,7 +209,11 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		"isF": func(m Match) bool {
 			return m.Stage == stageFinal
 		},
-		"isTBD": isTBD,
+		"isPast": func(m Match) bool {
+			return m.Status == statusCompleted
+		},
+		"isTBD":    isTBD,
+		"matchDay": matchDay,
 	}
 	tpl := template.Must(template.New(indexHTML).Funcs(fmap).ParseFS(htmlFS, indexHTML))
 
@@ -231,9 +241,13 @@ func handleMatch(w http.ResponseWriter, r *http.Request, mn int) {
 			return match.NoSpoilers
 		},
 		"boringMatch": func(m Match) bool {
-			return m.Time == timeFullTime && (m.HomeTeam.Goals+m.AwayTeam.Goals == 0)
+			return m.Status == statusCompleted && (m.HomeTeam.Goals+m.AwayTeam.Goals == 0)
 		},
-		"isTBD": isTBD,
+		"isTBD":    isTBD,
+		"matchDay": matchDay,
+		"isFuture": func(m Match) bool {
+			return m.DateTime.After(time.Now())
+		},
 	}
 
 	tpl := template.Must(template.New(matchHTML).Funcs(fmap).ParseFS(htmlFS, matchHTML))
@@ -269,9 +283,19 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // EntryFunc is the entry function to the app; separated from the main to facilitate Cloud Function deployment.
-func EntryFunc(port string) {
+func EntryFunc(port string) error {
+	var err error
+
+	tzLocal, err = time.LoadLocation(localTZ)
+	if err != nil {
+		log.Printf("Time zone error: %v", err)
+		return err
+	}
+	log.Printf("TZ: %v", tzLocal)
+
 	// HTTP server
 	http.HandleFunc("/", handleRequest)
 	http.Handle("/flags/", http.FileServer(http.FS(flagsFS)))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	return nil
 }

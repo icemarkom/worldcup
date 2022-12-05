@@ -1,7 +1,10 @@
 {{- define "match" -}}
-[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>][<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">SF</a>] {{ isTBD .HomeTeam }} vs. {{ isTBD .AwayTeam }}
+{{ if isPast . }}
+<strike>[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>][<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">SF</a>] {{ isTBD .HomeTeam }} vs. {{ isTBD .AwayTeam }} ({{ matchDay . }})</strike>
+{{ else }}
+[<a href="/{{ .ID }}" target="_blank">{{ .ID }}</a>][<a href="/{{ .ID }}?{{ noSpoilers }}" target="_blank">SF</a>] {{ isTBD .HomeTeam }} vs. {{ isTBD .AwayTeam }} ({{ matchDay . }})
+{{ end }}
 {{- end -}}
-
 <!DOCTYPE html>
 
 <html>

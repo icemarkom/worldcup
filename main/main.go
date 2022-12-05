@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/icemarkom/worldcup"
@@ -11,5 +12,7 @@ func main() {
 	if p == "" {
 		p = "8000"
 	}
-	worldcup.EntryFunc(p)
+	if err := worldcup.EntryFunc(p); err != nil {
+		log.Fatal(err)
+	}
 }
