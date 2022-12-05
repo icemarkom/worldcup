@@ -164,7 +164,7 @@ func isTBD(c Country) string {
 }
 
 func matchDay(m Match) string {
-	return m.DateTime.In(tzLocal).Format("Mon, Jan 2 at 15:00 MST")
+	return m.DateTime.In(tzLocal).Format("Mon, Jan 2 at 15:04 MST")
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
