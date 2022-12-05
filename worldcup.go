@@ -73,8 +73,8 @@ const (
 type Country struct {
 	ID    string `json:"country"`
 	Name  string `json:"name"`
+	Goals int    `json:"goals"`
 	Flag  string
-	Goals int `json:"goals"`
 }
 
 // Match is the information about a match.
