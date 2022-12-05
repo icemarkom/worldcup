@@ -291,7 +291,6 @@ func EntryFunc(port string) error {
 		log.Printf("Time zone error: %v", err)
 		return err
 	}
-	log.Printf("TZ: %v", tzLocal)
 
 	// HTTP server
 	http.HandleFunc("/", handleRequest)
