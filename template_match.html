@@ -1,10 +1,14 @@
+{{- define "time" -}}
+{{ if isFuture . }}{{ matchDay . }}{{ else }}{{ .Time }}{{ end }}
+{{- end -}}
+
 {{- define "score" -}}
       <section class="scorerow">
         <section class="scorecell">
           {{ .HomeTeam.Goals }}
         </section>
         <section class="dividercell">
-          {{ .Time }}
+          {{ template "time" . }}
         </section>
         <section class="scorecell">
           {{ .AwayTeam.Goals }}
@@ -22,7 +26,7 @@
           {{ end }}
         </section>
         <section class="dividercell">
-          {{ .Time }}
+          {{ template "time" . }}
         </section>
         <section class="nospoilerscell">
           {{ if boringMatch . }}
@@ -154,7 +158,7 @@
         vs.
       </section>
       <section class="countrycell">
-        <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam }}.png flag">
+        <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam.Name }}.png flag">
         <br>
         {{ isTBD .AwayTeam }}
       </section>
