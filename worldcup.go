@@ -54,8 +54,8 @@ const (
 	countryTBD          = "To Be Determined"
 	timeFullTime        = "full-time"
 
-	wsjURL  = "https://worldcupjson.net/matches/"
-	flagURL = "https://countryflagsapi.com/svg/"
+	wsjURL = "https://worldcupjson.net/matches/"
+	// flagURL = "https://countryflagsapi.com/svg/"
 
 	indexHTML = "template_index.html"
 	matchHTML = "template_match.html"
@@ -129,10 +129,10 @@ func fetchMatch(m int) (*Match, error) {
 			t.Flag = f
 		}
 	}
-	if match.HomeTeam.Name == "To Be Determined" {
+	if match.HomeTeam.Name == countryTBD {
 		match.HomeTeam.Flag = flagFIFA
 	}
-	if match.AwayTeam.Name == "To Be Determined" {
+	if match.AwayTeam.Name == countryTBD {
 		match.AwayTeam.Flag = flagWorldCup
 	}
 	return &match, nil
@@ -266,7 +266,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Everything else is 404d.
 	log.Printf("Bad URL request: %v", err)
 	http.NotFound(w, r)
-	return
 }
 
 // EntryFunc is the entry function to the app; separated from the main to facilitate Cloud Function deployment.
