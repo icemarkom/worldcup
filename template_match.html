@@ -58,18 +58,22 @@
     font-family: "Source Sans Pro";
     font-size: xx-large;
   }
-
   .countryrow {
     display: table-row;
     text-align: center;
-    height: 40%;
+    height: 20%;
   }
-  .countrycell {
+  .flagcell {
     display: table-cell;
     width: 45%;
     vertical-align: middle;
   }
-
+  .namecell {
+    display: table-cell;
+    width: 45%;
+    vertical-align: middle;
+    font-size: 5vw;
+  }
   .scorerow {
     display: table-row;
     text-align: center;
@@ -81,7 +85,6 @@
     vertical-align: middle;
     font-size: 20vw;
   }
-
   .nospoilersrow {
     display: table-row;
     text-align: center;
@@ -92,7 +95,6 @@
     width: 45%;
     vertical-align: middle;
   }
-
   .datarow {
     display: table-row;
     text-align: center;
@@ -104,13 +106,11 @@
     font-size:xx-small;
     font-family: "Source Code Pro";
   }
-
   .dividercell {
     display: table-cell;
     width: 10%;
     vertical-align: middle;
   }
-
   html, body {
     width: 100%;
     height: 100%;
@@ -119,7 +119,6 @@
     margin: 0;
     padding: 0;
   }
-
   h1 {
     font-family: 'Source Code Pro';
     font-size: xx-large;
@@ -149,21 +148,26 @@
 <body>
   <section class="content">
     <section class="countryrow">
-      <section class="countrycell">
+      <section class="flagcell">
         <img src="/flags/{{ .HomeTeam.Flag }}.png" alt="{{ .HomeTeam.Name }} flag" >
-        <br>
+      </section>
+      <section class="dividercell">
+      </section>
+      <section class="flagcell">
+        <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam.Name }}.png flag">
+      </section>
+    </section>
+    <section class="countryrow">
+      <section class="namecell">
         {{ isTBD .HomeTeam }}
       </section>
       <section class="dividercell">
         vs.
       </section>
-      <section class="countrycell">
-        <img src="/flags/{{ .AwayTeam.Flag }}.png" alt="{{ .AwayTeam.Name }}.png flag">
-        <br>
+      <section class="namecell">
         {{ isTBD .AwayTeam }}
       </section>
     </section>
-
     {{ if noSpoilers . }}
     {{ template "boringscore" . }}
     {{ else }}
