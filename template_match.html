@@ -5,13 +5,13 @@
 {{- define "score" -}}
       <section class="scorerow">
         <section class="scorecell">
-          {{ .HomeTeam.Goals }}
+          {{ totalGoals .HomeTeam }}
         </section>
         <section class="dividercell">
           {{ template "time" . }}
         </section>
         <section class="scorecell">
-          {{ .AwayTeam.Goals }}
+          {{ totalGoals .AwayTeam }}
         </section>
       </section>
 {{- end -}}
