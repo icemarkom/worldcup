@@ -54,6 +54,7 @@ const (
 	countryTBD             = "To Be Determined"
 	statusFutureUnschedule = "future_unscheduled"
 	statusFutureScheduled  = "future_scheduled"
+	statusInProgress       = "in_progress"
 	statusCompleted        = "completed"
 
 	wsjURL = "https://worldcupjson.net/matches/"
@@ -71,10 +72,11 @@ const (
 
 // Country is information about a side in a match.
 type Country struct {
-	ID    string `json:"country"`
-	Name  string `json:"name"`
-	Goals int    `json:"goals"`
-	Flag  string
+	ID        string `json:"country"`
+	Name      string `json:"name"`
+	Goals     int    `json:"goals"`
+	Penalties int    `json:"penalties"`
+	Flag      string
 }
 
 // Match is the information about a match.
@@ -247,6 +249,12 @@ func handleMatch(w http.ResponseWriter, r *http.Request, mn int) {
 		"matchDay": matchDay,
 		"isFuture": func(m Match) bool {
 			return m.DateTime.After(time.Now())
+		},
+		"totalGoals": func(c Country) string {
+			if c.Penalties == 0 {
+				return fmt.Sprint(c.Goals)
+			}
+			return fmt.Sprintf("%d (%d)", c.Goals, c.Penalties)
 		},
 	}
 
